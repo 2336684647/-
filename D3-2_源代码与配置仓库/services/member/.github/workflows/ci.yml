@@ -18,21 +18,17 @@ jobs:
         with:
           go-version: '1.21'
 
-      # 关键修正：在执行任何 Go 命令前，先为两个服务初始化模块
-      - name: Init Go Modules
-        run: |
-          cd services/reservation && go mod init app && go mod tidy
-          cd ../member && go mod init app && go mod tidy
-
-      # 1. 代码检查 (Lint)
+      # 1. 代码检查 (Lint) - 修复：直接指向子目录中的代码
       - name: Lint
-        run: go fmt ./services/...
+        run: |
+          go fmt ./services/reservation/...
+          go fmt ./services/member/...
 
-      # 2. 构建 (Build)
+      # 2. 构建 (Build) - 确保能找到各目录下的 go.mod
       - name: Build
         run: |
-          cd services/reservation && go build -o app
-          cd ../member && go build -o app
+          cd services/reservation && go mod init reservation && go build -o app
+          cd ../member && go mod init member && go build -o app
 
       # 3. 安全扫描 (Trivy)
       - name: Run Trivy Scanner
