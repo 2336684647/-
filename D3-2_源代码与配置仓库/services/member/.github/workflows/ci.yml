@@ -18,17 +18,21 @@ jobs:
         with:
           go-version: '1.21'
 
-      # 1. 代码检查 (Lint) - 修复：直接指向子目录中的代码
+      # 1. 代码检查 (Lint) - 直接指向子目录，避开根目录
       - name: Lint
         run: |
           go fmt ./services/reservation/...
           go fmt ./services/member/...
 
-      # 2. 构建 (Build) - 确保能找到各目录下的 go.mod
+      # 2. 构建 (Build) - 先进入目录再初始化模块+构建
       - name: Build
         run: |
-          cd services/reservation && go mod init reservation && go build -o app
-          cd ../member && go mod init member && go build -o app
+          cd services/reservation
+          go mod tidy
+          go build -o app
+          cd ../member
+          go mod tidy
+          go build -o app
 
       # 3. 安全扫描 (Trivy)
       - name: Run Trivy Scanner
